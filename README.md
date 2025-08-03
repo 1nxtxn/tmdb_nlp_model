@@ -18,7 +18,7 @@ The Solution for our problem is that people can save time from the hassle of sea
   
 2. *Taking a database of the top 5,000 global movies and sorting through 48 genre clusters to deliver the most optimal recommendation*
 3. *Developed a 3-D Principal Component Analysis Graph (PCA) to plot each individual cluster and also listed the corresponding movies within each cluster and visualized the graph using plotly*
-4. *# Implemented Word Cloud and Plotly to develop a Visualization of the distribution of the Top 15 most popular genres in our database which included: Drama, Comedy, Thriller, Action, Adventure, etc.*
+4. *Implemented Word Cloud and Plotly to develop a Visualization of the distribution of the Top 15 most popular genres in our database which included: Drama, Comedy, Thriller, Action, Adventure, etc.*
 
 
 ## Methodologies <!--- do not change this line -->
