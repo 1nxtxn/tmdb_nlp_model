@@ -12,9 +12,9 @@ The Solution for our problem is that people can save time from the hassle of sea
 ## Key Results <!--- do not change this line -->
 
 1. *Identified three biases in ChatGPT's responses*
-   - *When prompted about this world event*
-   - *When prompted about this field of science*
-   - *When prompted about this political party*
+   - *When prompted about access bias where smaller films with less access to capital and funding*
+   - *When prompted about nostalgia bias where older movies are perceived higher due to more reviews*
+   - *When prompted about western bias where most popular movies are released in the United States*
   
 2. *Taking a database of the top 5,000 global movies and sorting through 48 genre clusters to deliver the most optimal recommendation*
 3. *Developed a 3-D Principal Component Analysis Graph (PCA) to plot each individual cluster and also listed the corresponding movies within each cluster and visualized the graph using plotly*
