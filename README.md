@@ -1,99 +1,65 @@
-# Iris Deployment
+# Project Title: NLP Movie Recommendation Model
 
-![Python](https://img.shields.io/badge/python-v3.9.5-blue.svg)
-![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange.svg)
-[![GitHub issues](https://img.shields.io/github/issues/glickmac/GRAB.svg)](https://github.com/glickmac/GRAB/issues)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+Briefly describe the purpose/result(s) of your project, the skills you applied, and the AI4ALL Ignite program.
 
-
-This application is designed to deploy a random forest algorithm to predict iris subtype based on user slider input using StreamLit. 
+Purpose: To make searching for movies more efficient by prompting the user for a few important variables to help make the top 3 recommendations for their preferences.
 
 
+## Problem Statement <!--- do not change this line -->
 
-<p align="center"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Screenshot.png" width=60%></p>
+The Solution for our problem is that people can save time from the hassle of searching on platforms like Netflix and instead can identify what movie fits best for their preferences and to ensure a seamless experience for our users.
 
+## Key Results <!--- do not change this line -->
 
-## Table of Contents
-[What is deployment?](#intro)    
-[Why is model deployment important?](#importance)    
-[Deployment Workflow](#workflow)    
-[Quickstart](#quickstart)    
-[Building your own StreamLit Deployable Model](#install)       
-
-## <a name="intro"></a>What is deployment?
-
-Model deployment is how you can share your developed model with others. There are industrial solutions, environmental containers, and more localized solutions.
-
-## <a name="importance"></a>Why is model deployment important?
-
-Model deployment is critical for collaborative development and testing. It is also important for distribution of a model to a broader audience. 
-
-## <a name="workflow"></a>Deployment Workflow
-
-<p align="center"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Deployment.png" width=60%></p>
+1. *Identified three biases in ChatGPT's responses*
+   - *When prompted about this world event*
+   - *When prompted about this field of science*
+   - *When prompted about this political party*
+  
+2. *Taking a database of the top 5,000 global movies and sorting through 48 genre clusters to deliver the most optimal recommendation*
+3. *Developed a 3-D Principal Component Analysis Graph (PCA) to plot each individual cluster and also listed the corresponding movies within each cluster and visualized the graph using plotly*
+4. *# Implemented Word Cloud and Plotly to develop a Visualization of the distribution of the Top 15 most popular genres in our database which included: Drama, Comedy, Thriller, Action, Adventure, etc.*
 
 
-### Types of Deployments
+## Methodologies <!--- do not change this line -->
 
-Below are different methods other than StreamLit to deploy ML models
+*To accomplish our goal, we developed a content-based movie recommendation system using natural language processing (NLP), clustering, and sentiment analysis techniques. Our methodology centered on interpreting a user's natural language input and filtering relevant films based on genre, release year, and emotional tone.*
 
-#### Raw Files
-
-Saving trained machine learning models as an **H5**, **pkl**, or **sav** file to be loaded into the environment by another user
-
-#### Containerized Environment
-
-Building a machine learning model and deploying the whole environment including the model itself as a **Docker** container. 
-
-#### Web Application Framework
-
-Building the model into a web application is a common method for deploying a model and is essentially what is happening in this **StreamLit** pipeline. Other python methods to build applications include **Django** and **Flask**. 
-
-#### Hosting Services
-
-Once a model is saved or built into a web application framework, cloud-based methods like Heroku, AWS Sagemaker, or StreamLit are needed to host the application and allow external users the ability to interact with the model. 
-   
-
-## <a name="install"></a>Building your own StreamLit Deployable Model
-
-For this assignment, you will be forking this repository into your GitHub and connecting it with StreamLit to deploy the model on your own account. 
-1. To start fork this repository into your own GitHub account.
-2. Sign up for an account on [StreamLit](https://streamlit.io/)
-3. Link StreamLit to your GitHub Account <p align="center"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Link.png" width=60%></p>
-4. Build a new application by selecting "New App" <p align="center"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Build.png" width=60%></p>
-5. Create a new application by selecting the proper repository from the dropdown: <p align="center"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Create.png" width=60%></p>
-6. Make sure to change the Main File Path from "streamlit_app.py" to "app.py" <p align="left"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Error.png" width=40%></p><p align="right"><img src="https://github.com/AI4ALL-Offical/Iris_Deployment/blob/main/images/Change.png" width=40%></p>
-7. You can choose a custom URL name for the application
-8. Wait for the application to build
+- We applied **TF-IDF vectorization** to the cleaned movie overviews in the TMDB 5000 Movies dataset, converting plot descriptions into numerical feature vectors.
+- **KMeans clustering** was used to group similar movies based on textual features, allowing us to match the user's intent within thematically similar clusters.
+- We implemented **sentiment analysis** using the VADER model to compute a compound sentiment score for each movie overview. Each score was categorized into a `positive`, `neutral`, or `negative` tone to match the emotional vibe of the user's query.
+- A custom **recommendation function** was created to accept user input (text description, optional genre, year range, and tone), calculate similarity scores using **cosine similarity**, and return the top 3 movie matches.
+- The user experience was designed entirely within **Google Colab**, using `input()` prompts to simulate an interactive recommendation engine without the need for a front-end interface.
 
 
+## Data Sources <!--- do not change this line -->
+
+We included our relevant data sources that were used in our project below.
+
+*Kaggle TMDB Top 5,000 Movies Dataset: [Link to Kaggle Dataset]([https://www.kaggle.com/datasets](https://www.kaggle.com/datasets/tmdb/tmdb-movie-metadata?utm_source=chatgpt.com&select=tmdb_5000_movies.csv))*
+
+## Technologies Used <!--- do not change this line -->
+
+Below listed are the technologies, libraries, and frameworks used in your project.
+
+- *python*
+- *pandas*
+- *plotly*
+- *scikit-learn*
+- *seaborn*
+- *nltk*
+- *numpy*
+- *qgrid*
+- *tf-idf*
+- *vaderSentiment*
 
 
+## Authors <!--- do not change this line -->
 
+Below are listed the names of the contributors of the project.
 
-
-
-
-## [Download Iris Deployment](https://github.com/AI4ALL-Offical/Iris_Deployment/archive/refs/heads/main.zip)
-
-To run this locally:
-#### Unzip Iris Deployment and CD into Directory
-
-```
-unzip Iris_Deployment-main.zip
-cd Iris_Deployment-main
-```
-
-Install StreamLit Locally (assuming you have python and pip)
-
-```
-pip install streamlit
-```
-Run the application by running the app.py file
-
-```
-streamlit run app.py
-```
-
-You may need to copy and past ```http://localhost:8501``` into a browser if it does not automatically open up a tab. 
-
+*This project was completed in collaboration with:*
+- *Nathan Seife*
+- *Simon Plotkin*
+- *Shatoya Gardner*
+- *Syeda Bushra*
