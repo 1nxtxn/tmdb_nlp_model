@@ -1,4 +1,8 @@
 streamlit
-kagglehub[pandas-datasets]
-nltk
+pandas
+numpy
+scipy
 scikit-learn
+joblib
+nltk
+vaderSentiment
