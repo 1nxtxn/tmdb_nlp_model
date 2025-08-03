@@ -14,7 +14,6 @@ Action Items:
 6. (Optional) Experiment outside of using vader
 """
 
-!pip install kagglehub[pandas-datasets]
 !pip install vaderSentiment
 !pip install scikit-learn
 !pip install qgrid
