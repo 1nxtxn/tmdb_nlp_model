@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import ast
 from nltk.tokenize import word_tokenize
@@ -6,10 +7,9 @@ from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.metrics.pairwise import cosine_similarity
-from collections import Counter
-from datetime import datetime
 import joblib
 from scipy import sparse
+
 
 # === Constants & Region Mapping ===
 SMALL_THRESHOLD = 2e7  # $20M threshold for studio size
