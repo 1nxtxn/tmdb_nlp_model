@@ -1,8 +1,4 @@
-pip==24.3.1
-setuptools
-wheel
-numpy
-joblib==1.2.0
 streamlit
+kagglehub[pandas-datasets]
+nltk
 scikit-learn
-pandas
