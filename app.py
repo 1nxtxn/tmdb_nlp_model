@@ -1,37 +1,45 @@
 import streamlit as st
-from tmdb_nlp_model.model import MovieRecommender
+import pandas as pd
+from model import load_data, build_corpus_and_vectorizer, recommend_movies
 
-@st.cache_resource
-def get_recommender():
-    # Instantiate once and cache
-    return MovieRecommender()
+@st.cache(allow_output_mutation=True)
+def load_artifacts():
+    # If you haven't generated artifacts yet, run `python model.py` first.
+    vec = joblib.load('tfidf_vectorizer.joblib')
+    X   = sparse.load_npz('tfidf_matrix.npz')
+    df  = pd.read_csv('movies_metadata.csv')
+    return df, vec, X
 
-rec = get_recommender()
+# Load everything once
+df, vectorizer, tfidf_matrix = load_artifacts()
 
-st.title("🎬 TMDB Movie Recommender")
+st.title("🎬 AI4ALL Movie Recommender")
 
-# 1) Get user inputs
-user_text = st.text_input("What kind of movie are you in the mood for?")
-genres  = ['Any'] + rec.print_genre_suggestions()
-region  = rec.print_region_suggestions()
+# Sidebar Inputs
+genres = sorted({g for sub in df['genre_list'] for g in sub})
+genre = st.sidebar.selectbox("Genre", ["any"] + genres)
 
-col1, col2 = st.columns(2)
-with col1:
-    genre      = st.selectbox("Genre", genres)
-    movie_regn = st.selectbox("Region", region)
-with col2:
-    start_year = st.number_input("Start Year", 1900, 2025, 2000)
-    end_year   = st.number_input("End Year",   1900, 2025, 2025)
+min_year, max_year = int(df.release_year.min()), int(df.release_year.max())
+start_year, end_year = st.sidebar.slider(
+    "Release Year Range", min_year, max_year, (2000, 2020)
+)
 
-# 2) When they click “Recommend”, show top-3
-if st.button("Recommend"):
-    if not user_text:
-        st.warning("Please enter a description of the movie you’d like.")
+regions = list(REGION_GROUPS.keys()) + ["any"]
+region = st.sidebar.selectbox("Region", regions)
+
+user_text = st.sidebar.text_area(
+    "Describe what you like about past favorites:",
+    placeholder="e.g. emotional stakes, strong performances..."
+)
+
+# Recommendation Trigger
+if st.sidebar.button("Recommend"):
+    if not user_text.strip():
+        st.sidebar.error("Please enter a description.")
     else:
-        df_out = rec.recommend_movies(
-            user_text, genre, start_year, end_year, movie_regn
+        recs = recommend_movies(
+            user_text, genre, start_year, end_year, region,
+            df, vectorizer, tfidf_matrix, top_n=10
         )
-        if df_out.empty:
-            st.info("No matches found—try relaxing your filters.")
-        else:
-            st.dataframe(df_out, use_container_width=True)
+        st.subheader(f"Top {len(recs)} picks for '{genre}' ({start_year}-{end_year}) in {region}")
+        st.dataframe(recs)
