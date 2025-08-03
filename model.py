@@ -1,16 +1,13 @@
 import os
 import ast
 import pandas as pd
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.metrics.pairwise import cosine_similarity
 import joblib
 from scipy import sparse
 
-# === Constants & Regions ===
+# === Config ===
 SMALL_THRESHOLD = 2e7
 REGION_GROUPS = {
     "North America": ["United States","Canada","Mexico"],
@@ -22,91 +19,88 @@ REGION_GROUPS = {
     "Latin America": ["Brazil","Argentina","Colombia","Mexico","Chile","Peru","Venezuela","Ecuador"]
 }
 
-def load_data(path='tmdb_5000_movies.csv'):
+def load_data(path="tmdb_5000_movies.csv") -> pd.DataFrame:
     df = pd.read_csv(path)
-    df.drop_duplicates(subset=['original_title'], keep='first', inplace=True)
-    df['revenue'] = df.get('revenue', 0).fillna(0).astype(float)
-    df = df[['id','original_title','overview','genres','keywords','production_countries','release_date','vote_average','revenue']]
-    df.dropna(subset=['overview'], inplace=True)
-    df['keywords'] = df['keywords'].fillna('[]')
+    df.drop_duplicates(subset=["original_title"], keep="first", inplace=True)
+    df["revenue"] = df.get("revenue", 0).fillna(0).astype(float)
+    df = df[[
+        "id","original_title","overview","genres","keywords",
+        "production_countries","release_date","vote_average","revenue"
+    ]]
+    df.dropna(subset=["overview"], inplace=True)
+    df["keywords"] = df["keywords"].fillna("[]")
     return df
 
-# Preprocessing
-stemmer = PorterStemmer()
-stop_words = set(stopwords.words('english'))
+def build(df: pd.DataFrame):
+    # parse JSON-like columns
+    df["genre_list"]    = df["genres"].apply(lambda x: [i["name"] for i in ast.literal_eval(x)])
+    df["country_list"]  = df["production_countries"].apply(lambda x: [i["name"] for i in ast.literal_eval(x)])
+    df["release_year"]  = pd.to_datetime(df["release_date"], errors="coerce").dt.year.fillna(0).astype(int)
 
-def preprocess(tokens):
-    tokens = [w.lower() for w in tokens if w.isalpha() or any(ch.isdigit() for ch in w)]
-    return [stemmer.stem(w) for w in tokens if w not in stop_words]
-
-def extract_keywords(text):
-    try:
-        return ' '.join([kw['name'] for kw in ast.literal_eval(text)])
-    except:
-        return ''
-
-def parse_list(text, key):
-    try:
-        return [item.get(key, '') for item in ast.literal_eval(text)]
-    except:
-        return []
-
-def build(df):
-    df['tokenized'] = df['overview'].apply(word_tokenize)
-    df['clean'] = df['tokenized'].apply(preprocess).str.join(' ')
-    df['keywords_text'] = df['keywords'].apply(extract_keywords)
-    df['genre_list'] = df['genres'].apply(lambda x: parse_list(x, 'name'))
-    df['country_list'] = df['production_countries'].apply(lambda x: parse_list(x, 'name'))
-    df['release_year'] = pd.to_datetime(df['release_date'], errors='coerce').dt.year.fillna(0).astype(int)
-    df['text_input'] = df['original_title'] + ' ' + df['keywords_text'] + ' ' + df['clean']
-    vectorizer = TfidfVectorizer(
-        ngram_range=(1,3), min_df=3, max_df=0.8,
-        sublinear_tf=True, max_features=30000,
-        stop_words='english'
+    # create the text for TF-IDF
+    df["text_input"] = (
+        df["original_title"] + " "
+        + df["overview"]      + " "
+        + df["keywords"].apply(lambda t: " ".join([i["name"] for i in ast.literal_eval(t)]))
     )
-    X = vectorizer.fit_transform(df['text_input'])
-    return df, vectorizer, X
 
-# Sentiment
-analyzer = SentimentIntensityAnalyzer()
-def get_sentiment(text):
-    return analyzer.polarity_scores(text)['compound']
-
-def classify_tone(score):
-    if score >= 0.3:   return 'positive'
-    if score <= -0.3:  return 'negative'
-    return 'neutral'
+    # build TF-IDF
+    tfidf = TfidfVectorizer(
+        ngram_range=(1,3),
+        min_df=3,
+        max_df=0.8,
+        sublinear_tf=True,
+        max_features=30000,
+        stop_words="english"
+    )
+    X = tfidf.fit_transform(df["text_input"])
+    return df, tfidf, X
 
 def recommend_movies(
-    user_text, user_genre, start_year, end_year, movie_region,
-    df, vectorizer, X, top_n=10
-):
-    user_vec = vectorizer.transform([user_text])
-    mask_g = df['genre_list'].apply(lambda L: user_genre in L) if user_genre!='any' else True
-    mask_y = df['release_year'].between(start_year, end_year)
+    user_text: str,
+    user_genre: str,
+    start_year: int,
+    end_year: int,
+    movie_region: str,
+    df: pd.DataFrame,
+    tfidf: TfidfVectorizer,
+    X,
+    top_n: int = 10
+) -> pd.DataFrame:
+    vec = tfidf.transform([user_text])
+
+    # filters
+    mask_g = df["genre_list"].apply(lambda L: user_genre in L) if user_genre != "any" else True
+    mask_y = df["release_year"].between(start_year, end_year)
     if movie_region in REGION_GROUPS:
         allowed = set(REGION_GROUPS[movie_region])
-        mask_r = df['country_list'].apply(lambda L: any(c in allowed for c in L))
+        mask_r = df["country_list"].apply(lambda L: any(c in allowed for c in L))
     else:
         mask_r = True
 
-    subset = df[mask_g & mask_y & mask_r].copy()
-    subset = subset[subset['revenue']>0]
-    sims = cosine_similarity(user_vec, X[subset.index]).flatten()
-    subset['similarity'] = sims / (sims.max() or 1)
-    top = subset.sort_values('similarity', ascending=False).head(top_n).reset_index(drop=True)
-    top['studio_size'] = top['revenue'].apply(lambda r: 'Small' if r<SMALL_THRESHOLD else 'Big')
-    return top[['original_title','release_year','similarity','studio_size']]
+    sub = df[mask_g & mask_y & mask_r].copy()
+    sub = sub[sub["revenue"] > 0]
 
-def save_artifacts(vectorizer, X, df, out_dir='artifacts'):
+    # similarity
+    sims = cosine_similarity(vec, X[sub.index]).flatten()
+    sub["similarity"] = sims / (sims.max() or 1)
+
+    # pick top_n
+    top = (
+        sub
+        .sort_values("similarity", ascending=False)
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+    top["studio_size"] = top["revenue"].apply(lambda r: "Small" if r < SMALL_THRESHOLD else "Big")
+    return top[["original_title","release_year","similarity","studio_size"]]
+
+def save_artifacts(tfidf, X, df, out_dir="artifacts"):
     os.makedirs(out_dir, exist_ok=True)
-    joblib.dump(vectorizer, f"{out_dir}/tfidf_vectorizer.joblib")
-    sparse.save_npz(f"{out_dir}/tfidf_matrix.npz", X)
+    joblib.dump(tfidf,  f"{out_dir}/tfidf_vectorizer.joblib")
+    sparse.save_npz(f"{out_dir}/tfidf_matrix.npz",     X)
     df.to_csv(f"{out_dir}/movies_metadata.csv", index=False)
 
-if __name__=='__main__':
-    df = load_data()
-    df, vec, X = build(df)
-    df['sentiment_score'] = df['text_input'].apply(get_sentiment)
-    df['tone'] = df['sentiment_score'].apply(classify_tone)
-    save_artifacts(vec, X, df)
+if __name__ == "__main__":
+    df, tfidf_model, X = build(load_data())
+    save_artifacts(tfidf_model, X, df)
